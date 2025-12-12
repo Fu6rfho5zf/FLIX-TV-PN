@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>StreamMax - Painel Administrativo</title>
+    <title>FLIX TV Max - Painel Administrativo</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
@@ -186,7 +186,7 @@
             font-weight: 600;
         }
 
-        /* Menu de Categorias */
+        /* Menu de Categorias - MODIFICADO: Fechado por padrão */
         .categories-menu {
             padding: 0 20px;
             margin-bottom: 30px;
@@ -915,6 +915,128 @@
             display: flex;
             gap: 5px;
         }
+
+        /* Netflix Style Content Grid */
+        .netflix-grid {
+            display: flex;
+            overflow-x: auto;
+            gap: 15px;
+            padding: 20px 0;
+            scrollbar-width: thin;
+            scrollbar-color: var(--primary-color) transparent;
+        }
+
+        .netflix-grid::-webkit-scrollbar {
+            height: 8px;
+        }
+
+        .netflix-grid::-webkit-scrollbar-track {
+            background: rgba(255,255,255,0.05);
+            border-radius: 4px;
+        }
+
+        .netfox-grid::-webkit-scrollbar-thumb {
+            background: var(--primary-color);
+            border-radius: 4px;
+        }
+
+        .netflix-item {
+            flex: 0 0 auto;
+            width: 200px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 8px;
+            overflow: hidden;
+            transition: transform 0.3s, box-shadow 0.3s;
+            cursor: pointer;
+        }
+
+        .netflix-item:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+        }
+
+        .netflix-item img {
+            width: 100%;
+            height: 280px;
+            object-fit: cover;
+        }
+
+        .netflix-item-info {
+            padding: 15px;
+        }
+
+        .netflix-item-title {
+            font-weight: 600;
+            margin-bottom: 5px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .netflix-item-meta {
+            font-size: 12px;
+            color: var(--text-gray);
+        }
+
+        /* Content Actions */
+        .content-actions {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: none;
+            gap: 5px;
+            z-index: 10;
+        }
+
+        .netflix-item:hover .content-actions {
+            display: flex;
+        }
+
+        .action-btn {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(0,0,0,0.8);
+            color: white;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+
+        .action-btn:hover {
+            background: var(--primary-color);
+        }
+
+        /* Temporary Category */
+        .temp-category-badge {
+            background: var(--warning-color);
+            color: white;
+            padding: 3px 8px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 600;
+            margin-left: 5px;
+        }
+
+        /* Content Search Bar */
+        .content-search-bar {
+            background: rgba(255,255,255,0.05);
+            border-radius: 50px;
+            padding: 12px 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            color: white;
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .content-search-bar:focus {
+            outline: none;
+            border-color: var(--primary-color);
+            background: rgba(255,255,255,0.08);
+        }
     </style>
 </head>
 <body>
@@ -932,7 +1054,7 @@
     <!-- Sidebar Fixada -->
     <div class="sidebar" id="sidebar">
         <div class="logo">
-            <h3><i class="fas fa-crown"></i> Stream<span>Max</span> Admin</h3>
+            <h3><i class="fas fa-crown"></i> FLIX TV <span>Max</span> Admin</h3>
             <p>Painel de Controle Premium</p>
         </div>
         
@@ -966,13 +1088,13 @@
             </div>
         </div>
 
-        <!-- Menu de Categorias (Dinâmico) -->
+        <!-- Menu de Categorias (Dinâmico) - MODIFICADO: Inicialmente fechado -->
         <div class="categories-menu">
-            <div class="categories-title" id="categoriesTitle">
+            <div class="categories-title collapsed" id="categoriesTitle">
                 Categorias da Página
-                <i class="fas fa-chevron-up"></i>
+                <i class="fas fa-chevron-down"></i>
             </div>
-            <div class="category-list" id="categoryList">
+            <div class="category-list collapsed" id="categoryList">
                 <!-- Categorias serão carregadas dinamicamente -->
             </div>
         </div>
@@ -1106,6 +1228,13 @@
             <!-- View de Conteúdos por Categoria -->
             <div class="form-container mt-4" id="categoryContentView">
                 <h4 class="mb-3"><i class="fas fa-list me-2"></i>Conteúdos da Categoria: <span id="currentCategoryName"></span></h4>
+                
+                <!-- Barra de busca -->
+                <div class="mb-3">
+                    <input type="text" class="content-search-bar" id="searchCategoryContent" 
+                           placeholder="Buscar conteúdo nesta categoria..." onkeyup="searchCategoryContent()">
+                </div>
+                
                 <div class="table-container">
                     <table class="admin-table" id="categoryContentsTable">
                         <thead>
@@ -1162,6 +1291,7 @@
                             <p><i class="fas fa-circle text-success me-2"></i> Sistema: <strong>Online</strong></p>
                             <p><i class="fas fa-database me-2"></i> Armazenamento: <strong id="storageUsed">0 MB</strong></p>
                             <p><i class="fas fa-clock me-2"></i> Última Atividade: <strong id="lastActivity">-</strong></p>
+                            <p><i class="fas fa-history me-2"></i> Categorias Temp: <strong id="tempCategoriesCount">0</strong></p>
                         </div>
                     </div>
                 </div>
@@ -1344,11 +1474,77 @@
                     </div>
                 </form>
             </div>
+            
+            <!-- Nova Seção: Sistema de Criação de Categoria Temporária -->
+            <div class="form-container mt-4">
+                <h4 class="mb-3"><i class="fas fa-calendar-alt me-2"></i>Criar Categoria Temporária</h4>
+                <form id="tempCategoryForm">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Nome da Categoria</label>
+                                <input type="text" class="form-control" id="tempCategoryName" required>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Página</label>
+                                <select class="form-select" id="tempCategoryPage" required>
+                                    <option value="home">HOME</option>
+                                    <option value="tv">TV AO VIVO</option>
+                                    <option value="filmes">FILMES</option>
+                                    <option value="series">SÉRIES</option>
+                                    <option value="epg">EPG</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="mb-3">
+                                <label class="form-label">Duração (dias)</label>
+                                <input type="number" class="form-control" id="tempCategoryDuration" min="1" max="365" value="7">
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Data de Início</label>
+                                <input type="date" class="form-control" id="tempCategoryStartDate" required>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label class="form-label">Hora de Início</label>
+                                <input type="time" class="form-control" id="tempCategoryStartTime" required>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success-admin btn-admin">
+                            <i class="fas fa-plus me-2"></i>Criar Categoria
+                        </button>
+                        <button type="button" class="btn btn-primary-admin btn-admin" onclick="openTempCategoryManager()">
+                            <i class="fas fa-list me-2"></i>Gerenciar Categorias
+                        </button>
+                        <button type="button" class="btn btn-warning-admin btn-admin" onclick="scheduleTempCategory()">
+                            <i class="fas fa-clock me-2"></i>Agendar
+                        </button>
+                    </div>
+                </form>
+            </div>
         </section>
 
         <!-- Content Management Section -->
         <section id="contentSection" class="admin-section" style="display: none;">
             <h2 class="mb-4"><i class="fas fa-film me-2"></i>Gerenciar Conteúdo</h2>
+            
+            <!-- Barra de Busca Global -->
+            <div class="mb-4">
+                <input type="text" class="content-search-bar" id="globalSearchContent" 
+                       placeholder="Buscar conteúdo em todas as páginas..." onkeyup="globalSearchContent()">
+            </div>
             
             <ul class="nav nav-tabs nav-tabs-admin" id="contentTabs">
                 <li class="nav-item">
@@ -1359,6 +1555,9 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link" data-bs-toggle="tab" href="#tabView">Visualizar Todos</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" data-bs-toggle="tab" href="#tabTemp">Categorias Temp</a>
                 </li>
             </ul>
             
@@ -1419,9 +1618,14 @@
                                     
                                     <div class="mb-3">
                                         <label class="form-label">Categoria</label>
-                                        <select class="form-select" id="contentCategory" required>
-                                            <option value="">Primeiro selecione uma página</option>
-                                        </select>
+                                        <div class="input-group">
+                                            <select class="form-select" id="contentCategory" required>
+                                                <option value="">Primeiro selecione uma página</option>
+                                            </select>
+                                            <button class="btn btn-outline-light" type="button" onclick="createNewCategory()">
+                                                <i class="fas fa-plus"></i>
+                                            </button>
+                                        </div>
                                         <div class="form-text">Categoria dentro da página selecionada</div>
                                     </div>
                                     
@@ -1543,6 +1747,40 @@
                         
                         <div class="row" id="contentsGrid">
                             <!-- Content cards will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Temporary Categories Tab -->
+                <div class="tab-pane fade" id="tabTemp">
+                    <div class="form-container">
+                        <h4 class="mb-3"><i class="fas fa-clock me-2"></i>Gerenciar Categorias Temporárias</h4>
+                        
+                        <div class="table-container">
+                            <table class="admin-table">
+                                <thead>
+                                    <tr>
+                                        <th>Nome</th>
+                                        <th>Página</th>
+                                        <th>Início</th>
+                                        <th>Fim</th>
+                                        <th>Status</th>
+                                        <th>Ações</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tempCategoriesTable">
+                                    <!-- Temporary categories will be loaded here -->
+                                </tbody>
+                            </table>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button class="btn btn-primary-admin btn-admin" onclick="createTempCategoryModal()">
+                                <i class="fas fa-plus me-2"></i>Nova Categoria Temp
+                            </button>
+                            <button class="btn btn-warning-admin btn-admin" onclick="checkTempCategories()">
+                                <i class="fas fa-sync me-2"></i>Verificar Agora
+                            </button>
                         </div>
                     </div>
                 </div>
@@ -2094,6 +2332,32 @@
                 
                 <div id="backupStatus"></div>
             </div>
+            
+            <!-- Configurações de Categorias Temporárias -->
+            <div class="form-container mt-4">
+                <h4 class="mb-3"><i class="fas fa-clock me-2"></i>Configurações de Categorias Temporárias</h4>
+                
+                <div class="mb-3">
+                    <label class="form-label">Verificar automaticamente a cada (minutos)</label>
+                    <input type="number" class="form-control" id="tempCategoryCheckInterval" value="5" min="1" max="60">
+                </div>
+                
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="enableTempCategories" checked>
+                    <label class="form-check-label" for="enableTempCategories">Ativar categorias temporárias</label>
+                </div>
+                
+                <div class="form-check form-switch mb-3">
+                    <input class="form-check-input" type="checkbox" id="archiveExpiredCategories" checked>
+                    <label class="form-check-label" for="archiveExpiredCategories">Arquivar categorias expiradas</label>
+                </div>
+                
+                <div class="mt-4">
+                    <button class="btn btn-primary-admin btn-admin" onclick="saveTempCategorySettings()">
+                        <i class="fas fa-save me-2"></i>Salvar Configurações
+                    </button>
+                </div>
+            </div>
         </section>
     </div>
 
@@ -2168,6 +2432,26 @@
                                     <label class="form-label">Gênero</label>
                                     <input type="text" class="form-control" id="editContentGenre">
                                 </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Botões de ação para mover entre páginas -->
+                        <div class="mb-3">
+                            <label class="form-label">Mover para outra página/categoria</label>
+                            <div class="d-flex gap-2">
+                                <select class="form-select" id="moveContentPage">
+                                    <option value="home">HOME</option>
+                                    <option value="filmes">FILMES</option>
+                                    <option value="series">SÉRIES</option>
+                                    <option value="tv">TV AO VIVO</option>
+                                    <option value="epg">EPG</option>
+                                </select>
+                                <select class="form-select" id="moveContentCategory">
+                                    <option value="">Selecione categoria</option>
+                                </select>
+                                <button type="button" class="btn btn-warning-admin btn-admin" onclick="moveContentToPage()">
+                                    <i class="fas fa-share"></i> Mover
+                                </button>
                             </div>
                         </div>
                     </form>
@@ -2248,6 +2532,70 @@
                     <button type="button" class="btn btn-secondary btn-admin" data-bs-dismiss="modal">Cancelar</button>
                     <button type="button" class="btn btn-primary-admin btn-admin" onclick="saveEditedUser()">Salvar Alterações</button>
                     <button type="button" class="btn btn-danger-admin btn-admin" onclick="deleteUser()">Excluir Usuário</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para Criação de Nova Categoria -->
+    <div class="modal fade modal-admin" id="newCategoryModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Criar Nova Categoria</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="newCategoryForm">
+                        <div class="mb-3">
+                            <label class="form-label">Nome da Categoria</label>
+                            <input type="text" class="form-control" id="newCategoryName" required>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Página</label>
+                            <select class="form-select" id="newCategoryPage" required>
+                                <option value="home">HOME</option>
+                                <option value="filmes">FILMES</option>
+                                <option value="series">SÉRIES</option>
+                                <option value="tv">TV AO VIVO</option>
+                                <option value="epg">EPG</option>
+                            </select>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="newCategoryIsTemp">
+                                <label class="form-check-label" for="newCategoryIsTemp">Categoria Temporária</label>
+                            </div>
+                        </div>
+                        
+                        <div id="tempCategoryFields" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Data de Início</label>
+                                        <input type="date" class="form-control" id="newCategoryStartDate">
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label class="form-label">Hora de Início</label>
+                                        <input type="time" class="form-control" id="newCategoryStartTime">
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label class="form-label">Duração (dias)</label>
+                                <input type="number" class="form-control" id="newCategoryDuration" min="1" max="365" value="7">
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary btn-admin" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="button" class="btn btn-primary-admin btn-admin" onclick="saveNewCategory()">Criar Categoria</button>
                 </div>
             </div>
         </div>
@@ -2392,7 +2740,10 @@
         // ==============================================
         // CONFIGURAÇÃO INICIAL E VARIÁVEIS GLOBAIS
         // ==============================================
-        const ADMIN_STORAGE_KEY = 'streammax_admin_data';
+        const ADMIN_STORAGE_KEY = 'flixtv_admin_data';
+        
+        // CHAVE TMDB EMBUTIDA NO CÓDIGO (modifique aqui se necessário)
+        const EMBEDDED_TMDB_API_KEY = '0dea6057249cfc73c2758f6166eb0d6f';
         
         let adminData = {
             contents: [],
@@ -2400,14 +2751,19 @@
             codes: [],
             syncHistory: [],
             imports: [],
+            tempCategories: [],
+            archivedCategories: [],
             settings: {
-                tmdbApiKey: '',
+                tmdbApiKey: EMBEDDED_TMDB_API_KEY, // Usa a chave embutida
                 githubToken: '',
                 sessionTimeout: 30,
                 maxProfiles: 6,
                 enableRegistration: true,
                 enableAutoSync: true,
-                allowedIPs: ''
+                allowedIPs: '',
+                tempCategoryCheckInterval: 5,
+                enableTempCategories: true,
+                archiveExpiredCategories: true
             },
             stats: {
                 totalContents: 0,
@@ -2418,7 +2774,8 @@
                 usedCodes: 0,
                 lastSync: null,
                 storageUsed: 0,
-                lastActivity: new Date().toISOString()
+                lastActivity: new Date().toISOString(),
+                tempCategoriesCount: 0
             }
         };
         
@@ -2427,8 +2784,8 @@
         let currentPage = 'home';
         let currentCategory = '';
         let detectedIPTVCategories = [];
-        let tmdbApiKey = '';
         let currentIPTVChannels = [];
+        let tempCategoryCheckInterval = null;
 
         // ==============================================
         // FUNÇÕES DE INICIALIZAÇÃO
@@ -2442,11 +2799,14 @@
             loadAllUsers();
             loadAllCodes();
             loadSyncHistory();
+            loadTempCategories();
             
             // Set default dates
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('userCreateDate').value = today;
             document.getElementById('userRenewDate').value = today;
+            document.getElementById('tempCategoryStartDate').value = today;
+            document.getElementById('tempCategoryStartTime').value = '00:00';
             
             const nextMonth = new Date();
             nextMonth.setMonth(nextMonth.getMonth() + 1);
@@ -2470,6 +2830,12 @@
             
             // Load settings
             loadSettings();
+            
+            // Iniciar verificação automática de categorias temporárias
+            startTempCategoryChecker();
+            
+            // Carregar dados de login em tempo real
+            loadLoginData();
         }
 
         function loadAdminData() {
@@ -2480,9 +2846,9 @@
                 // Create default admin if none exists
                 const defaultAdmin = {
                     id: 'admin_1',
-                    username: 'admin',
-                    password: 'admin123',
-                    email: 'admin@streammax.com',
+                    username: 'daniel',
+                    password: 'daniel',
+                    email: 'admin@FLIX TV MAX.com',
                     role: 'superadmin',
                     created: new Date().toISOString()
                 };
@@ -2517,16 +2883,77 @@
             }
         }
 
+        async function loadLoginData() {
+            try {
+                const response = await fetch(RSS_FEEDS.login);
+                if (!response.ok) throw new Error('Erro ao carregar login');
+                
+                const text = await response.text();
+                parseLoginRSS(text);
+                
+                console.log('Dados de login carregados em tempo real');
+            } catch (error) {
+                console.error('Erro ao carregar dados de login:', error);
+            }
+        }
+
+        function parseLoginRSS(rssText) {
+            try {
+                const parser = new DOMParser();
+                const xmlDoc = parser.parseFromString(rssText, "text/xml");
+                const items = xmlDoc.querySelectorAll('item');
+                
+                // Limpar usuários existentes (exceto admin)
+                const adminUsers = adminData.users.filter(u => u.role === 'superadmin');
+                adminData.users = adminUsers;
+                
+                items.forEach(item => {
+                    const username = item.querySelector('username')?.textContent;
+                    const password = item.querySelector('password')?.textContent;
+                    const subscription = item.querySelector('subscription')?.textContent;
+                    const expiry = item.querySelector('expiry')?.textContent;
+                    const cargo = item.querySelector('cargo')?.textContent;
+                    
+                    if (username && password) {
+                        // Verificar se usuário já existe
+                        const existingUser = adminData.users.find(u => u.username === username);
+                        if (!existingUser) {
+                            const user = {
+                                id: 'user_' + Date.now() + '_' + Math.random(),
+                                username: username,
+                                password: password,
+                                email: '',
+                                phone: '',
+                                createDate: new Date().toISOString().split('T')[0],
+                                renewDate: expiry || new Date().toISOString().split('T')[0],
+                                plan: subscription || 'VIP BRONZE',
+                                role: cargo || 'user',
+                                status: 'active',
+                                createdBy: 'RSS Feed',
+                                created: new Date().toISOString()
+                            };
+                            
+                            adminData.users.push(user);
+                        }
+                    }
+                });
+                
+                saveAdminData();
+                loadAllUsers();
+                updateDashboard();
+                
+            } catch (error) {
+                console.error('Erro ao analisar RSS de login:', error);
+            }
+        }
+
         function saveAdminData() {
             localStorage.setItem(ADMIN_STORAGE_KEY, JSON.stringify(adminData));
         }
 
         function loadSettings() {
-            // Load TMDB API Key
-            if (adminData.settings.tmdbApiKey) {
-                document.getElementById('tmdbApiKey').value = adminData.settings.tmdbApiKey;
-                tmdbApiKey = adminData.settings.tmdbApiKey;
-            }
+            // TMDB API Key está embutida no código
+            document.getElementById('tmdbApiKey').value = EMBEDDED_TMDB_API_KEY;
             
             // Load GitHub Token
             if (adminData.settings.githubToken) {
@@ -2540,6 +2967,11 @@
             document.getElementById('enableRegistration').checked = adminData.settings.enableRegistration;
             document.getElementById('enableAutoSync').checked = adminData.settings.enableAutoSync;
             document.getElementById('allowedIPs').value = adminData.settings.allowedIPs || '';
+            
+            // Temp category settings
+            document.getElementById('tempCategoryCheckInterval').value = adminData.settings.tempCategoryCheckInterval;
+            document.getElementById('enableTempCategories').checked = adminData.settings.enableTempCategories;
+            document.getElementById('archiveExpiredCategories').checked = adminData.settings.archiveExpiredCategories;
         }
 
         // ==============================================
@@ -2623,12 +3055,23 @@
                 changePage(this.value);
             });
             
+            // Temp category form
+            document.getElementById('tempCategoryForm').addEventListener('submit', createTempCategory);
+            
+            // Checkbox para categoria temporária
+            document.getElementById('newCategoryIsTemp').addEventListener('change', function() {
+                document.getElementById('tempCategoryFields').style.display = 
+                    this.checked ? 'block' : 'none';
+            });
+            
             // Bootstrap tab handling
             const tabEls = document.querySelectorAll('a[data-bs-toggle="tab"]');
             tabEls.forEach(tabEl => {
                 tabEl.addEventListener('shown.bs.tab', function(event) {
                     if (event.target.getAttribute('href') === '#tabView') {
                         renderContentsGrid();
+                    } else if (event.target.getAttribute('href') === '#tabTemp') {
+                        loadTempCategoriesTable();
                     }
                 });
             });
@@ -2806,18 +3249,39 @@
                     });
                 }
             }
+            
+            // Adicionar categorias temporárias ativas
+            const activeTempCategories = adminData.tempCategories.filter(cat => 
+                cat.page === page && cat.status === 'active'
+            );
+            
+            if (activeTempCategories.length > 0) {
+                const tempHeader = document.createElement('div');
+                tempHeader.className = 'category-group';
+                tempHeader.style.padding = '12px 18px';
+                tempHeader.style.color = 'var(--warning-color)';
+                tempHeader.style.fontSize = '12px';
+                tempHeader.style.textTransform = 'uppercase';
+                tempHeader.style.fontWeight = '700';
+                tempHeader.textContent = 'Temporárias';
+                categoryList.appendChild(tempHeader);
+                
+                activeTempCategories.forEach(tempCat => {
+                    addCategoryItem(tempCat.name + ' ⏰', categoryList);
+                });
+            }
         }
 
         function addCategoryItem(category, container) {
             const item = document.createElement('a');
             item.className = 'category-item';
-            item.dataset.category = category;
+            item.dataset.category = category.replace(' ⏰', '');
             item.innerHTML = `
                 <div class="category-icon"><i class="fas fa-folder"></i></div>
                 <div class="category-text">${category}</div>
             `;
             item.addEventListener('click', () => {
-                selectCategory(category);
+                selectCategory(category.replace(' ⏰', ''));
             });
             container.appendChild(item);
         }
@@ -2839,39 +3303,60 @@
                 }
             }
             
+            // Adicionar categorias temporárias ativas
+            const activeTempCategories = adminData.tempCategories.filter(cat => 
+                cat.page === page && cat.status === 'active'
+            );
+            
+            activeTempCategories.forEach(tempCat => {
+                categories.push(tempCat.name + ' ⏰');
+            });
+            
             // Count contents per category
             const categoryCounts = {};
             categories.forEach(cat => {
-                categoryCounts[cat] = adminData.contents.filter(c => 
-                    c.page === page && c.category === cat
+                const cleanCat = cat.replace(' ⏰', '');
+                categoryCounts[cleanCat] = adminData.contents.filter(c => 
+                    c.page === page && c.category === cleanCat
                 ).length;
             });
             
             // Sort by count (descending)
-            categories.sort((a, b) => categoryCounts[b] - categoryCounts[a]);
+            categories.sort((a, b) => {
+                const cleanA = a.replace(' ⏰', '');
+                const cleanB = b.replace(' ⏰', '');
+                return categoryCounts[cleanB] - categoryCounts[cleanA];
+            });
             
             // Render category cards
             categories.forEach(category => {
-                const count = categoryCounts[category];
+                const cleanCategory = category.replace(' ⏰', '');
+                const count = categoryCounts[cleanCategory] || 0;
+                const isTemp = category.includes('⏰');
+                
                 const card = document.createElement('div');
                 card.className = 'category-card';
-                card.dataset.category = category;
+                card.dataset.category = cleanCategory;
                 card.innerHTML = `
                     <div class="category-card-icon">
-                        <i class="fas fa-${getCategoryIcon(category)}"></i>
+                        <i class="fas fa-${getCategoryIcon(cleanCategory)}"></i>
                     </div>
-                    <div class="category-card-title">${category}</div>
+                    <div class="category-card-title">${cleanCategory} 
+                        ${isTemp ? '<span class="temp-category-badge">TEMP</span>' : ''}
+                    </div>
                     <div class="category-card-count">${count} conteúdo(s)</div>
                 `;
                 card.addEventListener('click', () => {
-                    selectCategory(category);
+                    selectCategory(cleanCategory);
                 });
                 grid.appendChild(card);
             });
             
             // Update total categories count
             adminData.stats.totalCategories = categories.length;
+            adminData.stats.tempCategoriesCount = activeTempCategories.length;
             document.getElementById('totalCategories').textContent = categories.length;
+            document.getElementById('tempCategoriesCount').textContent = activeTempCategories.length;
         }
 
         function getCategoryIcon(category) {
@@ -2937,9 +3422,18 @@
                 }
             }
             
+            // Adicionar categorias temporárias ativas
+            const activeTempCategories = adminData.tempCategories.filter(cat => 
+                cat.page === page && cat.status === 'active'
+            );
+            
+            activeTempCategories.forEach(tempCat => {
+                categories.push(tempCat.name + ' ⏰');
+            });
+            
             categories.forEach(category => {
                 const option = document.createElement('option');
-                option.value = category;
+                option.value = category.replace(' ⏰', '');
                 option.textContent = category;
                 categorySelect.appendChild(option);
             });
@@ -2967,9 +3461,18 @@
                 }
             }
             
+            // Adicionar categorias temporárias ativas
+            const activeTempCategories = adminData.tempCategories.filter(cat => 
+                cat.page === page && cat.status === 'active'
+            );
+            
+            activeTempCategories.forEach(tempCat => {
+                categories.push(tempCat.name + ' ⏰');
+            });
+            
             categories.forEach(category => {
                 const option = document.createElement('option');
-                option.value = category;
+                option.value = category.replace(' ⏰', '');
                 option.textContent = category;
                 categorySelect.appendChild(option);
             });
@@ -2995,9 +3498,18 @@
                 }
             }
             
+            // Adicionar categorias temporárias ativas
+            const activeTempCategories = adminData.tempCategories.filter(cat => 
+                cat.page === page && cat.status === 'active'
+            );
+            
+            activeTempCategories.forEach(tempCat => {
+                categories.push(tempCat.name + ' ⏰');
+            });
+            
             categories.forEach(category => {
                 const option = document.createElement('option');
-                option.value = category;
+                option.value = category.replace(' ⏰', '');
                 option.textContent = category;
                 categorySelect.appendChild(option);
             });
@@ -3013,6 +3525,9 @@
             adminData.stats.activeUsers = adminData.users.filter(u => u.status !== 'inactive').length;
             adminData.stats.totalCodes = adminData.codes.length;
             adminData.stats.usedCodes = adminData.codes.filter(c => c.used >= c.maxUses).length;
+            adminData.stats.tempCategoriesCount = adminData.tempCategories.filter(cat => 
+                cat.status === 'active'
+            ).length;
             
             // Update UI
             document.getElementById('totalContents').textContent = adminData.stats.totalContents;
@@ -3035,6 +3550,7 @@
             // Update last activity
             adminData.stats.lastActivity = new Date().toLocaleString();
             document.getElementById('lastActivity').textContent = adminData.stats.lastActivity;
+            document.getElementById('tempCategoriesCount').textContent = adminData.stats.tempCategoriesCount;
             
             saveAdminData();
         }
@@ -3064,6 +3580,21 @@
                     </td>
                 `;
                 tableBody.appendChild(row);
+            });
+        }
+
+        function searchCategoryContent() {
+            const searchTerm = document.getElementById('searchCategoryContent').value.toLowerCase();
+            const tableBody = document.getElementById('categoryContentsTableBody');
+            const rows = tableBody.querySelectorAll('tr');
+            
+            rows.forEach(row => {
+                const cells = row.querySelectorAll('td');
+                if (cells.length > 0) {
+                    const title = cells[0].textContent.toLowerCase();
+                    const show = title.includes(searchTerm);
+                    row.style.display = show ? '' : 'none';
+                }
             });
         }
 
@@ -3314,12 +3845,8 @@
                 return;
             }
             
-            if (!tmdbApiKey && !adminData.settings.tmdbApiKey) {
-                alert('Configure a chave da API TMDB nas configurações primeiro');
-                return;
-            }
-            
-            const apiKey = tmdbApiKey || adminData.settings.tmdbApiKey;
+            // Usar a chave TMDB embutida
+            const apiKey = EMBEDDED_TMDB_API_KEY;
             
             showLoading('Buscando no TMDB...');
             
@@ -3840,6 +4367,32 @@
             });
         }
 
+        function globalSearchContent() {
+            const searchTerm = document.getElementById('globalSearchContent').value.toLowerCase();
+            if (!searchTerm) {
+                return;
+            }
+            
+            // Buscar em todos os conteúdos
+            const results = adminData.contents.filter(content => 
+                content.title.toLowerCase().includes(searchTerm) ||
+                (content.description && content.description.toLowerCase().includes(searchTerm)) ||
+                content.category.toLowerCase().includes(searchTerm)
+            );
+            
+            if (results.length === 0) {
+                alert('Nenhum conteúdo encontrado!');
+                return;
+            }
+            
+            // Mostrar resultados
+            const resultText = results.map((content, index) => 
+                `${index + 1}. ${content.title} (${content.page} - ${content.category})`
+            ).join('\n');
+            
+            alert(`Resultados da busca:\n\n${resultText}`);
+        }
+
         function filterContentsView() {
             renderContentsGrid();
         }
@@ -3940,12 +4493,8 @@
                 return;
             }
             
-            if (!tmdbApiKey && !adminData.settings.tmdbApiKey) {
-                alert('Por favor, configure a chave da API TMDB nas configurações primeiro.');
-                return;
-            }
-            
-            const apiKey = tmdbApiKey || adminData.settings.tmdbApiKey;
+            // Usar a chave TMDB embutida
+            const apiKey = EMBEDDED_TMDB_API_KEY;
             
             try {
                 const response = await fetch(
@@ -4356,8 +4905,87 @@
                 document.getElementById('editContentCategory').value = content.category;
             }, 100);
             
+            // Configurar opções de mover conteúdo
+            setupMoveContentOptions();
+            
             const modal = new bootstrap.Modal(document.getElementById('editContentModal'));
             modal.show();
+        }
+
+        function setupMoveContentOptions() {
+            const pageSelect = document.getElementById('moveContentPage');
+            const categorySelect = document.getElementById('moveContentCategory');
+            
+            pageSelect.value = document.getElementById('editContentPage').value;
+            
+            // Atualizar categorias quando página mudar
+            pageSelect.addEventListener('change', function() {
+                updateMoveCategories(this.value);
+            });
+            
+            // Carregar categorias iniciais
+            updateMoveCategories(pageSelect.value);
+        }
+
+        function updateMoveCategories(page) {
+            const categorySelect = document.getElementById('moveContentCategory');
+            categorySelect.innerHTML = '<option value="">Selecione categoria</option>';
+            
+            if (!page) return;
+            
+            let categories = [];
+            const pageData = CATEGORIES_BY_PAGE[page];
+            
+            if (Array.isArray(pageData)) {
+                // For HOME page
+                categories = pageData;
+            } else if (typeof pageData === 'object') {
+                // For other pages, flatten all categories
+                for (const groupCategories of Object.values(pageData)) {
+                    categories = categories.concat(groupCategories);
+                }
+            }
+            
+            // Adicionar categorias temporárias ativas
+            const activeTempCategories = adminData.tempCategories.filter(cat => 
+                cat.page === page && cat.status === 'active'
+            );
+            
+            activeTempCategories.forEach(tempCat => {
+                categories.push(tempCat.name + ' ⏰');
+            });
+            
+            categories.forEach(category => {
+                const option = document.createElement('option');
+                option.value = category.replace(' ⏰', '');
+                option.textContent = category;
+                categorySelect.appendChild(option);
+            });
+        }
+
+        function moveContentToPage() {
+            const contentId = document.getElementById('editContentId').value;
+            const newPage = document.getElementById('moveContentPage').value;
+            const newCategory = document.getElementById('moveContentCategory').value;
+            
+            if (!newCategory) {
+                alert('Por favor, selecione uma categoria!');
+                return;
+            }
+            
+            const contentIndex = adminData.contents.findIndex(c => c.id === contentId);
+            if (contentIndex !== -1) {
+                adminData.contents[contentIndex].page = newPage;
+                adminData.contents[contentIndex].category = newCategory;
+                
+                saveAdminData();
+                updateDashboard();
+                
+                alert(`Conteúdo movido para: ${newPage.toUpperCase()} - ${newCategory}`);
+                
+                const modal = bootstrap.Modal.getInstance(document.getElementById('editContentModal'));
+                modal.hide();
+            }
         }
 
         function saveEditedContent() {
@@ -4612,7 +5240,7 @@
             xml += `<rss version="2.0">\n`;
             xml += `  <channel>\n`;
             xml += `    <title>FlixLogin</title>\n`;
-            xml += `    <description>Usuários do StreamMax</description>\n`;
+            xml += `    <description>Usuários do FLIX TV Max</description>\n`;
             xml += `    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>\n`;
             
             adminData.users.forEach(user => {
@@ -4656,7 +5284,7 @@
             xml += `<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">\n`;
             xml += `  <channel>\n`;
             xml += `    <title>Flix${fileType.charAt(0).toUpperCase() + fileType.slice(1)}</title>\n`;
-            xml += `    <description>Conteúdo ${fileType} do StreamMax</description>\n`;
+            xml += `    <description>Conteúdo ${fileType} do FLIX TV Max</description>\n`;
             xml += `    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>\n`;
             
             contents.forEach((content, index) => {
@@ -5077,7 +5705,6 @@
             const newKey = prompt('Digite a nova chave da API TMDB:', input.value);
             if (newKey !== null) {
                 input.value = newKey;
-                tmdbApiKey = newKey;
                 adminData.settings.tmdbApiKey = newKey;
                 saveAdminData();
                 alert('Chave TMDB atualizada com sucesso!');
@@ -5110,11 +5737,22 @@
             adminData.settings.enableAutoSync = document.getElementById('enableAutoSync').checked;
             adminData.settings.allowedIPs = document.getElementById('allowedIPs').value;
             
-            tmdbApiKey = adminData.settings.tmdbApiKey;
-            
             saveAdminData();
             
             alert('Configurações salvas com sucesso!');
+        }
+
+        function saveTempCategorySettings() {
+            adminData.settings.tempCategoryCheckInterval = parseInt(document.getElementById('tempCategoryCheckInterval').value);
+            adminData.settings.enableTempCategories = document.getElementById('enableTempCategories').checked;
+            adminData.settings.archiveExpiredCategories = document.getElementById('archiveExpiredCategories').checked;
+            
+            saveAdminData();
+            
+            // Reiniciar verificador
+            startTempCategoryChecker();
+            
+            alert('Configurações de categorias temporárias salvas!');
         }
 
         function changeAdminPassword() {
@@ -5163,7 +5801,7 @@
             
             const a = document.createElement('a');
             a.href = url;
-            a.download = `streammax_backup_${new Date().toISOString().split('T')[0]}.json`;
+            a.download = `FLIX TV max_backup_${new Date().toISOString().split('T')[0]}.json`;
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -5225,6 +5863,317 @@
             };
             
             reader.readAsText(file);
+        }
+
+        // ==============================================
+        // FUNÇÕES DE CATEGORIAS TEMPORÁRIAS
+        // ==============================================
+        function createNewCategory() {
+            const modal = new bootstrap.Modal(document.getElementById('newCategoryModal'));
+            modal.show();
+        }
+
+        function saveNewCategory() {
+            const name = document.getElementById('newCategoryName').value;
+            const page = document.getElementById('newCategoryPage').value;
+            const isTemp = document.getElementById('newCategoryIsTemp').checked;
+            
+            if (!name || !page) {
+                alert('Por favor, preencha todos os campos!');
+                return;
+            }
+            
+            if (isTemp) {
+                const startDate = document.getElementById('newCategoryStartDate').value;
+                const startTime = document.getElementById('newCategoryStartTime').value;
+                const duration = parseInt(document.getElementById('newCategoryDuration').value);
+                
+                if (!startDate || !startTime) {
+                    alert('Por favor, preencha data e hora de início!');
+                    return;
+                }
+                
+                const startDateTime = new Date(`${startDate}T${startTime}`);
+                const endDateTime = new Date(startDateTime);
+                endDateTime.setDate(endDateTime.getDate() + duration);
+                
+                const tempCategory = {
+                    id: 'tempcat_' + Date.now(),
+                    name: name,
+                    page: page,
+                    startDate: startDateTime.toISOString(),
+                    endDate: endDateTime.toISOString(),
+                    status: 'active',
+                    createdBy: currentAdmin.username,
+                    created: new Date().toISOString()
+                };
+                
+                adminData.tempCategories.push(tempCategory);
+                saveAdminData();
+                updateDashboard();
+                
+                alert('Categoria temporária criada com sucesso!');
+                
+            } else {
+                // Adicionar à lista de categorias padrão
+                if (!CATEGORIES_BY_PAGE[page]) {
+                    CATEGORIES_BY_PAGE[page] = [];
+                }
+                
+                if (Array.isArray(CATEGORIES_BY_PAGE[page])) {
+                    CATEGORIES_BY_PAGE[page].push(name);
+                } else {
+                    // Se for objeto, adicionar à primeira seção
+                    const firstKey = Object.keys(CATEGORIES_BY_PAGE[page])[0];
+                    if (firstKey) {
+                        CATEGORIES_BY_PAGE[page][firstKey].push(name);
+                    }
+                }
+                
+                alert('Categoria criada com sucesso!');
+            }
+            
+            const modal = bootstrap.Modal.getInstance(document.getElementById('newCategoryModal'));
+            modal.hide();
+            
+            // Reset form
+            document.getElementById('newCategoryForm').reset();
+            
+            // Atualizar interface
+            updateCategoriesByPage();
+            renderCategoriesGrid(currentPage);
+        }
+
+        function createTempCategory(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('tempCategoryName').value;
+            const page = document.getElementById('tempCategoryPage').value;
+            const duration = parseInt(document.getElementById('tempCategoryDuration').value);
+            const startDate = document.getElementById('tempCategoryStartDate').value;
+            const startTime = document.getElementById('tempCategoryStartTime').value;
+            
+            if (!name || !page || !startDate || !startTime) {
+                alert('Por favor, preencha todos os campos!');
+                return;
+            }
+            
+            const startDateTime = new Date(`${startDate}T${startTime}`);
+            const endDateTime = new Date(startDateTime);
+            endDateTime.setDate(endDateTime.getDate() + duration);
+            
+            const tempCategory = {
+                id: 'tempcat_' + Date.now(),
+                name: name,
+                page: page,
+                startDate: startDateTime.toISOString(),
+                endDate: endDateTime.toISOString(),
+                status: 'scheduled',
+                createdBy: currentAdmin.username,
+                created: new Date().toISOString()
+            };
+            
+            adminData.tempCategories.push(tempCategory);
+            saveAdminData();
+            updateDashboard();
+            loadTempCategories();
+            
+            alert('Categoria temporária criada com sucesso!');
+            
+            // Reset form
+            document.getElementById('tempCategoryForm').reset();
+        }
+
+        function scheduleTempCategory() {
+            // Similar a createTempCategory, mas para agendamento
+            createTempCategory(new Event('submit'));
+        }
+
+        function loadTempCategories() {
+            adminData.stats.tempCategoriesCount = adminData.tempCategories.filter(cat => 
+                cat.status === 'active'
+            ).length;
+            updateDashboard();
+        }
+
+        function loadTempCategoriesTable() {
+            const tableBody = document.getElementById('tempCategoriesTable');
+            tableBody.innerHTML = '';
+            
+            adminData.tempCategories.forEach(category => {
+                const startDate = new Date(category.startDate);
+                const endDate = new Date(category.endDate);
+                const now = new Date();
+                
+                let status = category.status;
+                let statusClass = 'status-active';
+                
+                if (category.status === 'scheduled' && now >= startDate) {
+                    status = 'active';
+                    category.status = 'active';
+                } else if (category.status === 'active' && now >= endDate) {
+                    status = 'expired';
+                    category.status = 'expired';
+                    statusClass = 'status-inactive';
+                } else if (category.status === 'scheduled') {
+                    statusClass = 'status-warning';
+                } else if (category.status === 'expired') {
+                    statusClass = 'status-inactive';
+                }
+                
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${category.name}</td>
+                    <td>${category.page.toUpperCase()}</td>
+                    <td>${startDate.toLocaleString()}</td>
+                    <td>${endDate.toLocaleString()}</td>
+                    <td><span class="status-badge ${statusClass}">${status}</span></td>
+                    <td>
+                        <button class="btn btn-sm btn-primary-admin me-1" onclick="editTempCategory('${category.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-danger-admin" onclick="deleteTempCategory('${category.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                        ${category.status === 'expired' ? 
+                            `<button class="btn btn-sm btn-success-admin ms-1" onclick="restoreTempCategory('${category.id}')">
+                                <i class="fas fa-redo"></i>
+                            </button>` : ''
+                        }
+                    </td>
+                `;
+                tableBody.appendChild(row);
+            });
+            
+            saveAdminData();
+        }
+
+        function editTempCategory(categoryId) {
+            const category = adminData.tempCategories.find(c => c.id === categoryId);
+            if (!category) return;
+            
+            // Implementar edição (simplificado)
+            const newName = prompt('Novo nome da categoria:', category.name);
+            if (newName) {
+                category.name = newName;
+                saveAdminData();
+                loadTempCategoriesTable();
+                renderCategoriesGrid(currentPage);
+                alert('Categoria atualizada!');
+            }
+        }
+
+        function deleteTempCategory(categoryId) {
+            if (confirm('Tem certeza que deseja excluir esta categoria temporária?')) {
+                adminData.tempCategories = adminData.tempCategories.filter(c => c.id !== categoryId);
+                saveAdminData();
+                loadTempCategories();
+                loadTempCategoriesTable();
+                renderCategoriesGrid(currentPage);
+                alert('Categoria excluída!');
+            }
+        }
+
+        function restoreTempCategory(categoryId) {
+            const category = adminData.tempCategories.find(c => c.id === categoryId);
+            if (!category) return;
+            
+            const newDuration = prompt('Nova duração (dias):', 7);
+            if (newDuration) {
+                const newEndDate = new Date();
+                newEndDate.setDate(newEndDate.getDate() + parseInt(newDuration));
+                
+                category.startDate = new Date().toISOString();
+                category.endDate = newEndDate.toISOString();
+                category.status = 'active';
+                
+                saveAdminData();
+                loadTempCategories();
+                loadTempCategoriesTable();
+                renderCategoriesGrid(currentPage);
+                alert('Categoria restaurada!');
+            }
+        }
+
+        function checkTempCategories() {
+            const now = new Date();
+            let updated = false;
+            
+            adminData.tempCategories.forEach(category => {
+                const startDate = new Date(category.startDate);
+                const endDate = new Date(category.endDate);
+                
+                if (category.status === 'scheduled' && now >= startDate) {
+                    category.status = 'active';
+                    updated = true;
+                } else if (category.status === 'active' && now >= endDate) {
+                    category.status = 'expired';
+                    updated = true;
+                    
+                    // Arquivar se configurado
+                    if (adminData.settings.archiveExpiredCategories) {
+                        adminData.archivedCategories.push({
+                            ...category,
+                            archivedAt: new Date().toISOString()
+                        });
+                    }
+                }
+            });
+            
+            if (updated) {
+                saveAdminData();
+                loadTempCategories();
+                loadTempCategoriesTable();
+                renderCategoriesGrid(currentPage);
+                alert('Categorias temporárias verificadas e atualizadas!');
+            } else {
+                alert('Nenhuma alteração necessária nas categorias temporárias.');
+            }
+        }
+
+        function startTempCategoryChecker() {
+            // Limpar intervalo anterior
+            if (tempCategoryCheckInterval) {
+                clearInterval(tempCategoryCheckInterval);
+            }
+            
+            // Iniciar novo intervalo
+            const interval = adminData.settings.tempCategoryCheckInterval * 60 * 1000; // converter para milissegundos
+            if (adminData.settings.enableTempCategories && interval > 0) {
+                tempCategoryCheckInterval = setInterval(() => {
+                    checkTempCategories();
+                }, interval);
+                
+                console.log(`Verificador de categorias temporárias iniciado (${interval/60000} minutos)`);
+            }
+        }
+
+        function openTempCategoryManager() {
+            // Mudar para a aba de categorias temporárias
+            const tab = document.querySelector('a[href="#tabTemp"]');
+            if (tab) {
+                tab.click();
+            }
+        }
+
+        function createTempCategoryModal() {
+            const modal = new bootstrap.Modal(document.getElementById('newCategoryModal'));
+            
+            // Configurar como temporária
+            document.getElementById('newCategoryIsTemp').checked = true;
+            document.getElementById('tempCategoryFields').style.display = 'block';
+            
+            // Preencher datas padrão
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const time = now.getHours().toString().padStart(2, '0') + ':' + 
+                        now.getMinutes().toString().padStart(2, '0');
+            
+            document.getElementById('newCategoryStartDate').value = today;
+            document.getElementById('newCategoryStartTime').value = time;
+            document.getElementById('newCategoryDuration').value = 7;
+            
+            modal.show();
         }
 
         // ==============================================
