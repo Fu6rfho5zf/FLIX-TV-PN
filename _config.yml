@@ -1,0 +1,12 @@
+title: "FLIX-TV-PN"
+description: "Painel de Streaming"
+baseurl: ""
+url: ""
+theme: minima
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Configurações extras
+markdown: kramdown
+highlighter: rouge
