@@ -1871,6 +1871,19 @@
                                                placeholder="https://exemplo.com/video.m3u8" required>
                                     </div>
                                     
+                                    <!-- Novo campo para o formato de reprodução -->
+                                    <div class="mb-3">
+                                        <label class="form-label">Formato de Reprodução (MIME Type)</label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="contentFormat" 
+                                                   placeholder="Ex: video/mp4 ou video/m3u8" value="video/mp4" required>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('contentFormat').value='video/m3u8'">M3U8</button>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('contentFormat').value='video/mp4'">MP4</button>
+                                            <button class="btn btn-outline-secondary" type="button" onclick="document.getElementById('contentFormat').value='video/ts'">TS</button>
+                                        </div>
+                                        <div class="form-text">Selecione um formato ou digite manualmente (Ex: video/formato).</div>
+                                    </div>
+                                    
                                     <div class="mb-3">
                                         <label class="form-label">Descrição</label>
                                         <textarea class="form-control" id="contentDescription" rows="3" 
@@ -5906,6 +5919,7 @@
             } else if (fileType === 'login') {
                 return generateLoginXML();
             } else {
+                // O formato RSS foi atualizado para o novo padrão com media:content
                 return generateRSSXML(filteredContents, fileType);
             }
         }
@@ -5955,45 +5969,81 @@
         }
 
         function generateRSSXML(contents, fileType) {
-            let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
-            xml += `<rss version="2.0" xmlns:media="http://search.yahoo.com/mrss/">\n`;
-            xml += `  <channel>\n`;
-            xml += `    <title>Flix${fileType.charAt(0).toUpperCase() + fileType.slice(1)}</title>\n`;
-            xml += `    <description>Conteúdo ${fileType} do FLIX TV Max</description>\n`;
-            xml += `    <lastBuildDate>${new Date().toUTCString()}</lastBuildDate>\n`;
-            
-            contents.forEach((content, index) => {
-                xml += `    <item>\n`;
-                xml += `      <title><![CDATA[${content.title || ''}]]></title>\n`;
-                xml += `      <description><![CDATA[${content.description || ''}]]></description>\n`;
-                xml += `      <category><![CDATA[${content.category || 'Geral'}]]></category>\n`;
-                xml += `      <pubDate>${new Date(content.addedDate || Date.now()).toUTCString()}</pubDate>\n`;
-                
-                if (content.poster) {
-                    xml += `      <media:content url="${content.url}" type="${getMediaType(content.format)}">\n`;
-                    xml += `        <media:thumbnail url="${content.poster}"/>\n`;
-                    xml += `      </media:content>\n`;
-                } else {
-                    xml += `      <enclosure url="${content.url}" type="${getMediaType(content.format)}"/>\n`;
-                }
-                
-                xml += `    </item>\n`;
-            });
-            
-            xml += `  </channel>\n`;
-            xml += `</rss>`;
-            return xml;
-        }
+    // Novo formato XML RSS com detalhes de media:content
+    const date = new Date().toUTCString();
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>\n`;
+    xml += `<rss xmlns:media="http://search.yahoo.com/mrss/" version="2.0">\n`;
+    xml += `  <channel>\n`;
+    xml += `    <title>FLIX TV - Conteúdo Original</title>\n`;
+    xml += `    <link>https://flixtv.app</link>\n`;
+    xml += `    <description>Feed de vídeos originais para aplicativo Roku FLIX TV</description>\n`;
+    xml += `    <language>pt-br</language>\n`;
+    xml += `    <pubDate>${date}</pubDate>\n\n`;
+    
+    // Adiciona a tag <image>
+    xml += `    <image>\n`;
+    xml += `      <title>FLIX TV</title>\n`;
+    xml += `      <url>https://flixtv.app/images/logo_600x600.png</url>\n`;
+    xml += `      <width>600</width>\n`;
+    xml += `      <height>600</height>\n`;
+    xml += `    </image>\n\n`;
 
-        function getMediaType(format) {
-            const mediaTypes = {
-                'm3u8': 'application/vnd.apple.mpegurl',
-                'mp4': 'video/mp4',
-                'ts': 'video/mp2t',
-                'm3u': 'audio/x-mpegurl'
-            };
-            return mediaTypes[format] || 'video/mp4';
-        }
+    contents.forEach((content, index) => {
+        // Valores de exemplo para campos que não estão no formulário, mas são necessários no XML
+        // Estes valores são placeholders, o usuário pode precisar ajustá-los no futuro
+        const duration = content.duration || '600'; // Duração em segundos
+        const bitrate = content.bitrate || '2500';
+        const width = content.width || '1920';
+        const height = content.height || '1080';
+        const framerate = content.framerate || '30';
+        const channels = content.channels || '2';
+        const guid = content.guid || `flixtv-${fileType}-${index + 1}`;
+        const mediaType = content.format || 'video/mp4'; // Usa o novo campo 'format'
+
+        xml += `    <!-- CONTEÚDO ${index + 1} -->\n`;
+        xml += `    <item>\n`;
+        xml += `      <title><![CDATA[${content.title || ''}]]></title>\n`;
+        xml += `      <link><![CDATA[${content.url || ''}]]></link>\n`;
+        xml += `      <description>\n`;
+        xml += `        <![CDATA[${content.description || ''}]]>\n`;
+        xml += `      </description>\n`;
+        xml += `      <pubDate>${new Date(content.addedDate || Date.now()).toUTCString()}</pubDate>\n`;
+        xml += `      <guid isPermaLink="false">${guid}</guid>\n\n`;
+
+        xml += `      <media:content\n`;
+        xml += `        url="${content.url || ''}"\n`;
+        xml += `        type="${mediaType}"\n`;
+        xml += `        duration="${duration}"\n`;
+        xml += `        bitrate="${bitrate}"\n`;
+        xml += `        width="${width}"\n`;
+        xml += `        height="${height}"\n`;
+        xml += `        framerate="${framerate}"\n`;
+        xml += `        channels="${channels}"\n`;
+        xml += `        isDefault="true">\n\n`;
+
+        xml += `        <media:title><![CDATA[${content.title || ''}]]></media:title>\n\n`;
+        xml += `        <media:description>\n`;
+        xml += `          <![CDATA[${content.description || ''}]]>\n`;
+        xml += `        </media:description>\n\n`;
+        
+        // Usando a categoria como palavra-chave, se existir
+        const keywords = content.category ? content.category.toLowerCase().replace(/ /g, ', ') : 'geral';
+        xml += `        <media:keywords>${keywords}</media:keywords>\n\n`;
+
+        xml += `        <media:thumbnail\n`;
+        xml += `          url="${content.poster || ''}" />\n`;
+
+        xml += `      </media:content>\n`;
+        xml += `    </item>\n\n`;
+    });
+
+    xml += `  </channel>\n`;
+    xml += `</rss>`;
+    return xml;
+}
+
+// A função getMediaType foi removida, pois o novo campo 'content.format' já fornece o tipo MIME completo.
+        // O código generateRSSXML foi atualizado para usar diretamente content.format.
 
         function getFileName(fileType) {
             const fileNames = {
